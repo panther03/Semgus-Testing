@@ -1,0 +1,17 @@
+- sudoku z3 solution
+- why don't the SMT files work
+- probably will have to put off CHCs for now
+- try SyGUS problems | any actual examples? | keep working
+- learn CHCs | any resources lol	
+- theoretical concepts (first order logic)
+- Z3 datatypes (lists and arrays and custom datatypes) (Check EUSolver Z3 output) (quantifier) | how to fucgkin build eusolver? ?? free working 2020 descargar para android?? | keep working on this
+- more complex Z3 aspects 
+- https://rise4fun.com/Z3/tutorialcontent/fixedpoints
+
+- take a semgus problem from the paper and write in rosette
+
+
+- Translate the semantics given by CHCs to the mechanism of defining semantics that can be defined in the language Rosette or Sketch
+- Rosette lets you define semantics for your own operates
+- Read up on introductory program semantics
+- CHCs are just a way of equipping a program with semantics
