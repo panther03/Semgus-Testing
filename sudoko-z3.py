@@ -1,4 +1,5 @@
 from z3 import *
+import z3
 
 filled = [[5,0,0,0,0,0,0,0,0],
          [6,3,0,0,5,0,7,9,0],
@@ -32,7 +33,7 @@ def square(board, index):
     #print(square)
     return square
 
-s = Solver()
+s = z3.Solver()
 
 board = [[Int(f"x{i}y{j}") for j in range(9)] for i in range(9)]
 
