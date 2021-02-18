@@ -14,3 +14,5 @@
   (solve (begin (assert (= (poly x l) 0)))))
 (poly x l)
 (evaluate x root)
+
+(define 
