@@ -1,0 +1,28 @@
+// direct translation of grammar found in paper
+
+int x; int y;
+
+adt RootNode {
+    WhileStmtNode { BoolExpNode b; StmtNode s;}
+}
+
+adt StmtNode {
+    SemicolonNode {StmtNode s1; StmtNode s2;} 
+    AssignXNode { ExpNode e1; }
+    AssignYNode { Expnode e1; }
+}
+
+adt BoolExpNode {
+    LTExpNode { ExpNode e; ExpNode e;}
+}
+
+adt ExpNode {
+    XNode {}
+    YNode {}
+    AndNode {}
+    OrNode {}
+}
+
+RootNode translate_treeint(int x) {
+
+}
