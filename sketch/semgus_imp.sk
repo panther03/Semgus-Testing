@@ -1,0 +1,72 @@
+adt ASTNode {
+    adt Start {
+        AssignX { E rhs; }
+        AssignY { E rhs; }
+        AssignC { E rhs; }
+        // Ite { B cond; Start stmt1; Start stmt2; }
+    }
+    adt E {
+        Plus { E left; E right; }
+        // Num { int n; }
+        Var { int id; }
+    }
+    adt B {
+        Not { B cond; }
+        And { B left; B right; }
+        Lte { E left; E right; }
+        Const { bit b; }
+    }
+}
+
+int x; int y; int c;
+
+generator Start start_gen(int bnd) {
+    assert bnd >= 0;
+    int t = ??;
+    E a = e_gen(bnd - 1);
+    if (t == 0){return new AssignX(rhs = a);}
+    if (t == 1){return new AssignY(rhs = a);}
+    if (t == 2){return new AssignC(rhs = a);}
+}
+
+generator E e_gen(int bnd) {
+    assert bnd >= 0;
+    int t = ??;
+    if (t == 0){return new Var(id = 0);}
+    if (t == 1){return new Var(id = 1);}
+    if (t == 2){return new Var(id = 2);}
+    if (t == 3){return new Plus(left=e_gen(bnd-1), right=e_gen(bnd-1));}
+}
+
+void StartSem(Start s) {
+    switch(s) {
+        case AssignX:{
+            x = ESem(s.rhs);
+        }
+        case AssignY:{
+            y = ESem(s.rhs);
+        }
+        case AssignC:{
+            c = ESem(s.rhs);
+        }
+    }
+}
+
+int ESem(E e) {
+    switch(e) {
+        case Var:{
+            if (e.id == 0){return x;}
+            if (e.id == 1){return y;}
+            if (e.id == 2){return c;}
+        }
+        case Plus:{
+            return ESem(e.left) + ESem(e.right);
+        }
+    }
+}
+
+harness void gen() {
+    Start prog = start_gen(3);
+    StartSem(prog);
+    assert x == x + y;
+}

@@ -1,0 +1,41 @@
+adt ASTNode {
+    adt E {
+        Plus { E left; E right; }
+        Var { int id; }
+        //Ite {B cond; E exp1; E exp2; }
+    }
+    adt B {
+        Not { B cond; }
+        And { B left; B right; }
+        Lte { E left; E right; }
+        Const { bit b; }
+    }
+}
+
+generator E e_gen(int bnd) {
+    assert bnd >= 0;
+    int t = ??;
+    if (t == 0){return new Var(id = 0);}
+    if (t == 1){return new Var(id = 1);}
+    if (t == 2){return new Var(id = 2);}
+    if (t == 3){return new Plus(left=e_gen(bnd-1), right=e_gen(bnd-1));}
+}
+
+int ESem(E e, int x, int y, int z) {
+    switch(e) {
+        case Var:{
+            if (e.id == 0){return x;}
+            if (e.id == 1){return y;}
+            if (e.id == 2){return z;}
+        }
+        case Plus:{
+            return ESem(e.left, x, y, z) + ESem(e.right, x, y, z);
+        }
+    }
+}
+
+harness void gen(int x, int y, int z) {
+    E prog = e_gen(3);
+    
+    assert ESem(prog, x, y, z) == x + y;
+}
