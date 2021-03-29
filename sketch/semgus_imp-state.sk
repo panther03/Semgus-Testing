@@ -1,0 +1,135 @@
+adt ASTNode {
+    adt Start {
+        AssignX { E rhs; }
+        AssignY { E rhs; }
+        AssignC { E rhs; }
+        Ite { B cond; Start stmt1; Start stmt2; }
+    }
+    adt E {
+        Plus { E left; E right; }
+        // Num { int n; }
+        Var { int id; }
+    }
+    adt B {
+        Not { B cond; }
+        And { B left; B right; }
+        Lte { E left; E right; }
+        Const { bit b; }
+    }
+}
+// ADT for State (rx, ry, rc)
+
+struct State {
+    int x;
+    int y; 
+    int c;
+}
+
+generator Start start_gen(int bnd) {
+    assert bnd >= 0;
+    int t = ??;
+    E a = e_gen(bnd - 1);
+    if (t == 0){return new AssignX(rhs = a);}
+    if (t == 1){return new AssignY(rhs = a);}
+    if (t == 2){return new AssignC(rhs = a);}
+    if (t == 3){
+        Start s1 = start_gen(bnd - 1);
+        Start s2 = start_gen(bnd - 1);
+        B b = b_gen(bnd - 1);
+        return new Ite(cond = b,stmt1 = s1,stmt2 = s2);
+    }
+}
+
+generator E e_gen(int bnd) {
+    assert bnd >= 0;
+    int t = ??;
+    if (t == 0){return new Var(id = 0);}
+    if (t == 1){return new Var(id = 1);}
+    if (t == 2){return new Var(id = 2);}
+    if (t == 3){return new Plus(left=e_gen(bnd-1), right=e_gen(bnd-1));}
+}
+
+generator B b_gen(int bnd) {
+    assert bnd >= 0;
+    int t = ??;
+    B b1 = b_gen(bnd - 1);
+    if (t == 0){return new Not(cond = b1);}
+    if (t == 1){return new And(left = b1, right = b_gen(bnd - 1));}
+    if (t == 2){return new Lte(left = e_gen(bnd - 1), right = e_gen(bnd - 1));}
+    if (t == 3){return new Const(b = true);}
+    if (t == 4){return new Const(b = false);}
+}
+
+State StartSem(Start s, int x, int y, int c) {
+    State st = new State();
+    switch(s) {
+        case AssignX:{
+            st.x = ESem(s.rhs, x, y, c);
+            st.y = y;
+            st.c = c;
+        }
+        case AssignY:{
+            st.x = x;
+            st.y = ESem(s.rhs, x, y, c);
+            st.c = c;
+        }
+        case AssignC:{
+            st.x = x;
+            st.y = y;
+            st.c = ESem(s.rhs, x, y, c);
+        }
+        case Ite:{
+            State s1 = StartSem(s.stmt1, x, y, c);
+            State s2 = StartSem(s.stmt2, x, y, c);
+            bit b = BSem(s.cond, x, y, c);
+            if (b == 1) {
+                st.x = s1.x;
+                st.y = s1.y;
+                st.c = s1.c;
+            } else {
+                st.x = s2.x;
+                st.y = s2.y;
+                st.c = s2.c;
+            }
+        }
+    }
+    return st;
+}
+
+int ESem(E e, int x, int y, int c) {
+    switch(e) {
+        case Var:{
+            if (e.id == 0){return x;}
+            if (e.id == 1){return y;}
+            if (e.id == 2){return c;}
+        }
+        case Plus:{
+            return ESem(e.left, x, y, c) + ESem(e.right, x, y, c);
+        }
+    }
+}
+
+bit BSem(B b, int x, int y, int c) {
+    switch(b) {
+        case Not:{
+            return !BSem(b.cond, x, y, c);
+        }
+        case And:{
+            return BSem(b.left, x, y, c) && BSem(b.right, x, y, c);
+        }
+        case Lte:{
+            return ESem(b.left, x, y, c) <= ESem(b.right, x, y, c);
+        }
+        case Const:{
+            return b.b;
+        }
+    }
+}
+
+harness void gen(int x, int y, int c) {    
+    Start prog = start_gen(4);
+    Start ref_p = new Ite(cond = new Lte(left = new Var(id = 0), right = new Var(id = 1)), stmt1 = new AssignX(rhs = new Var(id = 0)), stmt2 = new AssignX(rhs = new Var(id = 1)));
+    State s1 = StartSem(prog, x, y, c);
+    State s2 = StartSem(ref_p, x, y, c);
+    assert s1.x == s2.x; // use StartSem for semantics?
+}

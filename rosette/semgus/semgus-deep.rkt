@@ -27,13 +27,17 @@
     [(assn_x iexp) (list (E.Sem iexp x y c) y c)]
     [(assn_y iexp) (list x (E.Sem iexp x y c) c)]
     [(assn_c iexp) (list x y (E.Sem iexp x y c))]
-    [(site bexp s1 s2) (let ([rr1 (Start.Sem s1 x y c)]
-                             [rr2 (Start.Sem s2 x y c)]
-                             [bb (B.Sem bexp x y c)])
-                         (list (if bb (first rr1) (first rr2))
-                           (if bb (second rr1) (second rr2))
-                           (if bb (third rr1) (third rr2))))]
+    [(site bexp s1 s2) (list (if (B.Sem bexp x y c) (first (Start.Sem s1 x y c)) (first (Start.Sem s2 x y c)))
+                             (if (B.Sem bexp x y c) (second (Start.Sem s1 x y c)) (second (Start.Sem s2 x y c)))
+                             (if (B.Sem bexp x y c) (third (Start.Sem s1 x y c)) (third (Start.Sem s2 x y c))))]
     [_ p]))
+
+  ;  [(site bexp s1 s2) (let ([rr1 (Start.Sem s1 x y c)]
+  ;                            [rr2 (Start.Sem s2 x y c)]
+  ;                            [bb (B.Sem bexp x y c)])
+  ;                        (list (if bb (first rr1) (first rr2))
+  ;                          (if bb (second rr1) (second rr2))
+  ;                          (if bb (third rr1) (third rr2))))] 
 
 ; output format: re
 (define (E.Sem p x y c)
@@ -55,7 +59,7 @@
                (assn_x (I (- depth 1)))
                (assn_y (I (- depth 1)))
                (assn_c (I (- depth 1)))
-               (site (B (- depth 1)) (I (- depth 1)) (I (- depth 1)))))
+               (site (B (- depth 1)) (Start (- depth 1)) (Start (- depth 1)))))
 
 (define (I depth)
   (if (= depth 0)
@@ -77,8 +81,9 @@
 
 ; Constraints for problem given
 (define p (assn_x (plus_st x y)))
+(define q (site (lt_st x y) (assn_x y) (assn_x x)))
 (define (constraints prog)
-  (assert (= (first (Start.Sem prog x y c)) (first (Start.Sem p x y c)))))
+  (assert (= (first (Start.Sem prog x y c)) (first (Start.Sem q x y c)))))
 
 ; Synthesize the function
 (define sol
@@ -89,7 +94,7 @@
 ; Synthesize an example program
 
 ; Interpret (execute)
-(define q (site (lt_st x y) (assn_x y) (assn_x x)))
+
 (Start.Sem q x y c)
 
 ; Run max2 against the bindings found by the synthesizer to generate the program form

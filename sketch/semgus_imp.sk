@@ -17,6 +17,7 @@ adt ASTNode {
         Const { bit b; }
     }
 }
+// ADT for State (rx, ry, rc)
 
 int x; int y; int c;
 
@@ -68,5 +69,5 @@ int ESem(E e) {
 harness void gen() {
     Start prog = start_gen(3);
     StartSem(prog);
-    assert x == x + y;
+    assert x == x + y; // use StartSem for semantics?
 }
