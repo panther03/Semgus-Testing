@@ -9,6 +9,7 @@ adt ASTNode {
         Plus { E left; E right; }
         // Num { int n; }
         Var { int id; }
+        Itee { B cond; E exp1; E exp2; }
     }
     adt B {
         Not { B cond; }
@@ -47,10 +48,11 @@ generator E e_gen(int bnd) {
     if (t == 1){return new Var(id = 1);}
     if (t == 2){return new Var(id = 2);}
     if (t == 3){return new Plus(left=e_gen(bnd-1), right=e_gen(bnd-1));}
+    if (t == 4){return new Itee(cond=b_gen(bnd-1),exp1=e_gen(bnd-1), exp1=e_gen(bnd-1));}
 }
 
 generator B b_gen(int bnd) {
-    assert bnd >= 0;
+    //assert bnd >= 0;
     int t = ??;
     B b1 = b_gen(bnd - 1);
     if (t == 0){return new Not(cond = b1);}
@@ -106,6 +108,16 @@ int ESem(E e, int x, int y, int c) {
         case Plus:{
             return ESem(e.left, x, y, c) + ESem(e.right, x, y, c);
         }
+        case Itee:{
+            int e1 = ESem(e.exp1, x, y, c);
+            int e2 = ESem(e.exp2, x, y, c);
+            bit b = BSem(e.cond, x, y, c);
+            if (b == 1) {
+                return e1;
+            } else {
+                return e2;
+            }
+        }
     }
 }
 
@@ -127,8 +139,9 @@ bit BSem(B b, int x, int y, int c) {
 }
 
 harness void gen(int x, int y, int c) {    
-    Start prog = start_gen(4);
-    Start ref_p = new Ite(cond = new Lte(left = new Var(id = 0), right = new Var(id = 1)), stmt1 = new AssignX(rhs = new Var(id = 0)), stmt2 = new AssignX(rhs = new Var(id = 1)));
+    Start prog = start_gen(5);
+    //Start ref_p = new Ite(cond = new Lte(left = new Var(id = 0), right = new Var(id = 1)), stmt1 = new AssignX(rhs = new Var(id = 0)), stmt2 = new AssignX(rhs = new Var(id = 1)));
+    Start ref_p = new AssignX(rhs = new Itee(cond = new Lte(left = new Var(id = 0), right = new Var(id = 1)), exp1 = new Var(id = 0), exp2 = new Var(id = 1)));
     State s1 = StartSem(prog, x, y, c);
     State s2 = StartSem(ref_p, x, y, c);
     assert s1.x == s2.x; // use StartSem for semantics?

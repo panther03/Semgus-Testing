@@ -29,6 +29,8 @@ int ESem(E e, int x, int y, int z) {
             if (e.id == 2){return z;}
         }
         case Plus:{
+            v1 = ESem(e.t1, x,y,z);
+            v2 = E
             return ESem(e.left, x, y, z) + ESem(e.right, x, y, z);
         }
     }

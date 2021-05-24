@@ -28,14 +28,14 @@
     [(assn_x iexp) (list (E.Sem iexp x y c) y c)]
     [(assn_y iexp) (list x (E.Sem iexp x y c) c)]
     [(assn_c iexp) (list x y (E.Sem iexp x y c))]
-    ;[(site bexp s1 s2) (if (B.Sem bexp x y c) (Start.Sem s1 x y c) (Start.Sem s2 x y c))]
+    [(site bexp s1 s2) (if (B.Sem bexp x y c) (Start.Sem s1 x y c) (Start.Sem s2 x y c))]
     [_ p]))
 
 ; output format: re
 (define (E.Sem p x y c)
   (destruct p
     [(plus_st iexp1 iexp2) (+ (E.Sem iexp1 x y c) (E.Sem iexp2 x y c))]
-   ; [(sitee bexp e1 e2) (if (B.Sem bexp x y c) (E.Sem e1 x y c) (E.Sem e2 x y c))]
+    [(sitee bexp e1 e2) (if (B.Sem bexp x y c) (E.Sem e1 x y c) (E.Sem e2 x y c))]
     [_ p]))
 
 ; output format rb
@@ -53,16 +53,14 @@
                (assn_x (I (- depth 1)))
                (assn_y (I (- depth 1)))
                (assn_c (I (- depth 1)))
-               ;(site (B (- depth 1)) (Start (- depth 1)) (Start (- depth 1)))
-               ))
+               (site (B (- depth 1)) (Start (- depth 1)) (Start (- depth 1)))))
 
 (define (I depth)
   (if (= depth 0)
       (choose* 0 2 x y)
       (choose* 0 2 x y
                (plus_st (I (- depth 1)) (I (- depth 1)))
-               ;(sitee (B (- depth 1)) (I (- depth 1)) (I (- depth 1)))
-               )))
+               (sitee (B (- depth 1)) (I (- depth 1)) (I (- depth 1))))))
 
 (define (B depth)
   (if (= depth 0)
@@ -81,25 +79,21 @@
 (define q (assn_x (sitee (lt_st x y) y x))) ; reference program using expression-based ITE
 (define r (site (lt_st x y) (assn_x y) (assn_x x))) ; reference program using statement-based ITE
 
-(define (sol f)
+(define (constraints prog)
+  (assert (= (first (Start.Sem prog x y c)) (first (Start.Sem r x y c))))) 
+
+; Synthesize the function
+(define sol
     (synthesize
    #:forall (list x y c)
-    #:guarantee (f max2)))
+    #:guarantee (constraints max2)))
 
-; Try to generate simple x+y program (works when ITE semantic & syntax rules are commented out)
+; Synthesize an example program
 
-(define (constraints_p prog)
-  (assert (= (first (Start.Sem prog x y c)) (first (Start.Sem p x y c)))))
-(evaluate max2 (sol constraints_p))
+; Interpret (execute)
 
-; Try to generate using expression-based ITE (runs forever)
-(define (constraints_q prog)
-  (assert (= (first (Start.Sem prog x y c)) (first (Start.Sem q x y c)))))
-;(evaluate max2 (sol constraints_q))
+(Start.Sem q x y c)
 
-; Try to generate using statement-based ITE (also runs forever)
-(define (constraints_r prog)
-  (assert (= (first (Start.Sem prog x y c)) (first (Start.Sem r x y c)))))
-;(evaluate max2 (sol constraints_r))
-
+; Run max2 against the bindings found by the synthesizer to generate the program form
+(evaluate max2 sol)
 
