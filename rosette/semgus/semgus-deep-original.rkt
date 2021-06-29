@@ -49,18 +49,19 @@
 ; we assume depth > 0, there are no terminals for this LHS
 
 (define (Start depth)
+  (if (= depth 0)
       (choose*
-               (assn_x (I (- depth 1)))
-               (assn_y (I (- depth 1)))
-               (assn_c (I (- depth 1)))
-               ;(site (B (- depth 1)) (Start (- depth 1)) (Start (- depth 1)))
-               ))
+               (assn_x (E (- depth 1)))
+               (assn_y (E (- depth 1)))
+               (assn_c (E (- depth 1)))
+               (site (B (- depth 1)) (Start (- depth 1)) (Start (- depth 1)))
+               )))
 
-(define (I depth)
+(define (E depth)
   (if (= depth 0)
       (choose* 0 2 x y)
       (choose* 0 2 x y
-               (plus_st (I (- depth 1)) (I (- depth 1)))
+               (plus_st (E (- depth 1)) (E (- depth 1)))
                ;(sitee (B (- depth 1)) (I (- depth 1)) (I (- depth 1)))
                )))
 
@@ -70,7 +71,7 @@
       (choose* #t #f
                (not_st (B (- depth 1)))
                (and_st (B (- depth 1)) (B (- depth 1)))
-               (lt_st (I (- depth 1)) (I (- depth 1))))))
+               (lt_st (E (- depth 1)) (E (- depth 1))))))
 
 ; Define function to generate
 (define max2

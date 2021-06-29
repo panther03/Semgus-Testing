@@ -2,13 +2,8 @@
 
 (require 
   rosette/lib/match
-  rosette/lib/synthax)
-
-(define (sNot a)   (if a #f #t))
-(define (sAnd a b) (if a b #f))
-(define (sOr a b)  (if a #t b))
-(define (sIff a b) (if a b (! b)))
-(define (sXor a b) (if a (! b) b))
+  rosette/lib/synthax
+  (prefix-in s (only-in "shallow.rkt" Not And Or Iff Xor)))
 
 (struct Not (a)   #:transparent)
 (struct And (a b) #:transparent)
@@ -35,10 +30,9 @@
   (load (last)))
 
 (define (ver impl spec)
-  (define-symbolic* in boolean? #:length (car impl))
+  (define-symbolic* in boolean? [(car impl)])
   (define sol
     (verify (assert (equal? (interpret impl in) (interpret spec in)))))
-  (print sol)
   (and (sat? sol) (evaluate in sol)))
 
 (define NXp
@@ -47,13 +41,12 @@
 (define Niffp
    (list 4 (Xor 0 1) (Not 4) (Xor 2 3) (Not 6) (Xor 5 7)))
 
-
 (ver NXp Niffp)
 
-;(define sketch
-;(case-lambda
-;  [(n k) (sketch n k Not And Or Xor Iff)]
-;  [(n k . insts) (cons n (build-list k (lambda (x) (apply choose insts))))]))
+(define sketch
+(case-lambda
+  [(n k) (sketch n k Not And Or Xor Iff)]
+  [(n k . insts) (cons n (build-list k (lambda (x) (apply choose insts))))]))
 
 (define (syn impl spec)
   (define-symbolic* in boolean? [(car spec)])
@@ -62,3 +55,7 @@
    #:forall in
    #:guarantee (assert (equal? (interpret impl in) (interpret spec in)))))
   (and (sat? syn) (evaluate syn)))
+
+(define (superopt spec)
+  (define-symbolic len integer?)
+  (solve (assert ((define out (syn (sketch (car spec) len) spec)) out))))

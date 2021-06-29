@@ -1,14 +1,53 @@
 #lang rosette
 
 (require rosette/lib/synthax)
-
 (provide Not And Or Xor Iff ver syn ??inst)
+
+(current-bitwidth #f)
 
 (define (Not a)   (if a #f #t))
 (define (And a b) (if a b #f))
 (define (Or a b)  (if a #t b))
 (define (Iff a b) (if a b (! b)))
 (define (Xor a b) (if a (! b) b))
+
+(define (ver impl spec)
+  (define-symbolic* in boolean? [(procedure-arity impl)])
+  (define sol
+    (verify (assert (equal? (apply impl in) (apply spec in)))))
+  (and (sat? sol) (evaluate in sol)))
+
+(define (syn impl spec)
+  (define-symbolic* in boolean? [(procedure-arity impl)])
+  (define sol
+    (synthesize
+     #:forall in
+     #:guarantee (assert (equal? (apply impl in) (apply spec in)))))
+  (and (sat? sol) (generate-forms sol)))
+
+(define-synthax ??inst
+  ([[_ arg ...]
+    (choose (Not (choose arg ...))
+            ((choose And Or Iff Xor)
+             (choose arg ...) (choose arg ...)))]))
+
+(define (specp a b c d)
+  (odd? (+ (if a 1 0) (if b 1 0) (if c 1 0) (if d 1 0))))
+
+(define (sk-1 a b c d)
+  (define r1 (??inst a b c d))
+  r1)
+
+(define (sk-2 a b c d)
+  (define r1 (??inst a b c d))
+  (define r2 (??inst a b c d r1))
+  r2)
+
+(define (sk-3 a b c d)
+  (define r1 (??inst a b c d))
+  (define r2 (??inst a b c d r1))
+  (define r3 (??inst a b c d r1 r2))
+  r3)
 
 (define (Niffp a b c d)
   (define r1 (Iff a b))
@@ -24,26 +63,6 @@
   (define r4 (Not r3))
   (define r5 (Xor r2 r4))
   r5)
-
-(define (ver impl spec)
-  (define-symbolic* in boolean? [(procedure-arity impl)])
-  (define sol
-    (verify (assert (equal? (apply impl in) (apply spec in)))))
-  (and (sat? sol) (evaluate in sol)))
-
-(define-synthax ??inst
-  ([[_ arg ...]
-    (choose (Not (choose arg ...))
-            ((choose And Or Iff Xor)
-             (choose arg ...) (choose arg ...)))]))
-
-(define (syn impl spec)
-  (define-symbolic* in boolean? [(procedure-arity impl)])
-  (define syn
-    (synthesize
-   #:forall in
-   #:guarantee (assert (equal? (apply impl in) (apply spec in)))))
-  (and (sat? syn) (generate-forms syn)))
 
 (define (AIGp a b c d)
   (define r1 (Not a))
@@ -73,24 +92,12 @@
   (define r25 (Not r24))
   r25)
 
-(define (AIGp_impl a b c d)
-   (??inst a b c d))
-
-(define (sk-1 a b c d)
-  (define r1 (??inst a b c d))
-  r1)
-
-(define (sk-2 a b c d)
-  (define r1 (??inst a b c d))
-  (define r2 (??inst a b c d r1))
-  r2)
-
-(define (sk-3 a b c d)
-  (define r1 (??inst a b c d))
-  (define r2 (??inst a b c d r1))
-  (define r3 (??inst a b c d r1 r2))
-  r3)
-
-; (syn sk-1 AIGp)
-; (syn sk-2 AIGp)
-; (syn sk-3 AIGp)
+; Sample interactions wrapped in a main module
+; (see Racket docs) so they don't get evaluated
+; when the shallow.rkt module is imported. 
+(module* main #f 
+  (ver Niffp NXp)
+  (ver NXp specp)
+  (syn sk-1 AIGp)
+  (syn sk-2 AIGp)
+  (syn sk-3 AIGp))
