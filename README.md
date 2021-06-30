@@ -1,7 +1,7 @@
 # Rosette progress
 
-- [ ] create example with B nonterminal
-- [ ] synthesize x < y (type B)
+- [x] create example with B nonterminal
+- [ ] synthesize x < y (type B) (partially complete?)
 - [ ] create example with Start nonterminal
 - [ ] synthesize assign (type Start)
 - [ ] add ITE semantics
