@@ -2,8 +2,8 @@
 
 - [x] create example with B nonterminal
 - [ ] synthesize x < y (type B) (partially complete?)
-- [ ] create example with Start nonterminal
-- [ ] synthesize assign (type Start)
-- [ ] add ITE semantics
-- [ ] look into define-grammar?
-- [ ] look into performance optimizations with bitvector ops
+- [x] create example with Start nonterminal
+- [x] synthesize assign (type Start)
+- [ ] add ITE semantics - have questions
+- [ ] look into define-grammar? (Not running?)
+- [x] look into performance optimizations with bitvector ops

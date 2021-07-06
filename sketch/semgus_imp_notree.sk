@@ -1,0 +1,72 @@
+// ADT for State (rx, ry, rc)
+
+struct State {
+    int x;
+    int y; 
+    int c;
+}
+
+generator State StartSem(int x, int y, int c) {
+    State st = new State();
+    int t = ??;
+    if (t == 0) {
+        st.x = ESem(x, y, c);
+        st.y = y;
+        st.c = c;
+    }
+    if (t == 1) {
+        st.x = x;
+        st.y = ESem(x, y, c);
+        st.c = c;
+    }
+    if (t == 2) {
+        st.x = x;
+        st.y = y;
+        st.c = ESem(x, y, c);
+    }
+    //if (t == 3) {
+    //    State s1 = StartSem(x, y, c);
+    //    State s2 = StartSem(x, y, c);
+    //    bit b = BSem(x, y, c);
+    //    if (b == 1) {
+    //        st.x = s1.x;
+    //        st.y = s1.y;
+    //        st.c = s1.c;
+    //    } else {
+    //        st.x = s2.x;
+    //        st.y = s2.y;
+    //        st.c = s2.c;
+    //    }
+    //}
+    return st;
+}
+
+generator int ESem(int x, int y, int c) {
+    int t = ??;
+    if (t == 0){return x;}
+    if (t == 1){return y;}
+    if (t == 2){return c;}
+    if (t == 3){return ESem(x,y,c) + ESem(x,y,c);}
+}
+
+//bit BSem(B b, int x, int y, int c) {
+//    switch(b) {
+//        case Not:{
+//            return !BSem(b.cond, x, y, c);
+//        }
+//        case And:{
+//            return BSem(b.left, x, y, c) && BSem(b.right, x, y, c);
+//        }
+//        case Lte:{
+//            return ESem(b.left, x, y, c) <= ESem(b.right, x, y, c);
+//        }
+//        case Const:{
+//            return b.b;
+//        }
+//    }
+//}
+
+harness void gen(int x, int y, int c) {    
+    State s1 = StartSem(x, y, c);
+    assert s1.x == x + y; // use StartSem for semantics?
+}
