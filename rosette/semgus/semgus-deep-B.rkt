@@ -86,7 +86,7 @@
    #:guarantee  (assert (&& (equal? (E.Sem max2_e 0 1) 2) (equal? (E.Sem max2_e 2 2) 5)))))
 
 
-; Try to generate x == b <=> !(x < y) && !(x > y)
+; Try to generate x == y <=> !(x < y) && !(x > y)
 (define sol_b
   (synthesize
    #:forall (list)

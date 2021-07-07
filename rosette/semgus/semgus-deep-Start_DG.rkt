@@ -5,7 +5,8 @@
 (require 
   rosette/lib/match
   rosette/lib/destruct
-  rosette/lib/angelic)
+  rosette/lib/angelic
+  rosette/lib/synthax)
 
 (define-symbolic x y integer?)
 
