@@ -42,7 +42,7 @@
     [(assn_x iexp) (list (E.Sem iexp x y) y c)]
     [(assn_y iexp) (list x (E.Sem iexp x y) c)]
     [(ite_st cond stmt1 stmt2) (if (B.Sem cond x y) (Start.Sem stmt1 x y c) (Start.Sem stmt2 x y c))]
-    [(while_st cond stmt)   (if (&& (B.Sem cond x y) (> c 0))
+    [(while_st cond stmt)   (if (&& (B.Sem cond x y) (>= c 0))
                                 (let ([stmt_sem (Start.Sem stmt x y c)])
                                   (Start.Sem p (first stmt_sem) (second stmt_sem) (- c 1)))
                                 (list x y c))]
@@ -110,10 +110,8 @@
    #:guarantee  (assert (equal? (Start.Sem (f) 0 0 6) (list 0 0 6)))
                             ))
 
-; Test constraints
-;(equal? (Start.Sem max2_start 0 7) (list 4 3))
-;(equal? (Start.Sem max2_start 5 2) (list 5 2))
 
-; Test the semantics of the desired program
+;(equal? (Start.Sem max2_start 0 7) (list 4 3))
+                         ;   (equal? (Start.Sem max2_start 5 2) (list 5 2))
 (Start.Sem test_prog 0 7 6)
 (print-forms sol_start)
