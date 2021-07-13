@@ -2,9 +2,7 @@
 
 (current-bitwidth #f)
 
-(require
-  data/maybe
-  data/monad
+(require 
   rosette/lib/match
   rosette/lib/destruct
   rosette/lib/angelic
@@ -41,20 +39,11 @@
 ; Output type rx, ry, rc (int, int)
 (define (Start.Sem p x y c)
   (destruct p
-    [(assn_x iexp) (just (list (E.Sem iexp x y) y c))]
-    [(assn_y iexp) (just (list x (E.Sem iexp x y) c))]
-    [(ite_st cond stmt1 stmt2) (let ([stmt1_sem (Start.Sem stmt1 x y c)] [stmt2_sem (Start.Sem stmt2 x y c)]) 
-                                  (if (|| (just? stmt1_sem) (just? stmt2_sem)) (if (B.Sem cond x y) stmt1_sem stmt2_sem) nothing))]
-    [(while_st cond stmt)   (if (B.Sem cond x y)
-                                (if (= c 0)
-                                  (begin (print "C=0") nothing) ; debug print
-                                  (let ([stmt_sem (Start.Sem stmt x y c)])
-                                    (if (just? stmt_sem)
-                                        (just (Start.Sem p (first (from-just #f stmt_sem)) (second (from-just #f stmt_sem)) (- c 1)))
-                                        nothing)
-                                  ))
-                                (list x y c))]
-    [(semi_st stmt1 stmt2) (let ([stmt1_sem (Start.Sem stmt1 x y c)]) (if (just? stmt1_sem) (Start.Sem stmt2 (first (from-just #f stmt1_sem)) (second (from-just #f stmt1_sem)) (third (from-just #f stmt1_sem))) nothing))]
+    [(assn_x iexp) (list (E.Sem iexp x y) y c)]
+    [(assn_y iexp) (list x (E.Sem iexp x y) c)]
+    [(assn_ iexp) (list x (E.Sem iexp x y) c)]
+    [(ite_st cond stmt1 stmt2) (if (B.Sem cond x y) (Start.Sem stmt1 x y c) (Start.Sem stmt2 x y c))]
+    [(semi_st stmt1 stmt2) (let ([stmt1_res (Start.Sem stmt1 x y c)]) (Start.Sem stmt2 (first stmt1_res) (second stmt1_res) (third stmt1_res)))]
     [_ p]))
 
 
@@ -85,13 +74,13 @@
 
 ; replace with define-grammar
 ; have to bound depth, but is that applicable here?
+;
 
 (current-grammar-depth 4)
 (define-grammar (gram)
   [Start
    (choose (assn_x (E)) (assn_y (E))
         (ite_st (B) (Start) (Start))
-        (while_st (B) (Start)) 
         (semi_st (Start) (Start)))]
   [E
    (choose (varx_st) (vary_st) (const1_st) (const0_st)
@@ -106,22 +95,18 @@
 
 ; Define function to generate
 (define (f)
-  (gram #:depth 4))
-
-(define test_prog
-    (while_st (lt_st (varx_st) (vary_st)) (semi_st (assn_x (plus_st (varx_st) (const1_st))) (assn_y (sub_st (vary_st) (const1_st))))))
+  (gram #:depth 2))
 
 ; Try to generate while x<y; x = x+1; y = y-1;
-;(define sol_start
-;  (synthesize
-;   #:forall (list)
-;   #:guarantee  (assert (equal? (Start.Sem (f) 0 0 6) (list 0 0 6)))
-;                            ))
+(define sol_start
+  (synthesize
+   #:forall (list)
+   #:guarantee  (assert (equal? (Start.Sem (f)  0 6) (list 0 0 6)))
+                            ))
 
 ; Test constraints
 ;(equal? (Start.Sem max2_start 0 7) (list 4 3))
 ;(equal? (Start.Sem max2_start 5 2) (list 5 2))
 
 ; Test the semantics of the desired program
-(Start.Sem test_prog 0 7 10)
-;(print-forms sol_start)
+(print-forms sol_start)
